@@ -50,7 +50,6 @@ paths:
             type: object
             required:
             - data
-            - filter
             properties:
               data:
                 type: array

@@ -1,3 +1,7 @@
+# pylint: disable=R0201
+
+import os
+
 from yaml import safe_load
 from swagger_spec_validator.util import get_validator
 
@@ -31,7 +35,8 @@ class SpecTestCase(BaseTestCase):
     def test_validate_swaggerui(self):
         """验证 SwaggerUI 文档是否有效
         """
-        resp = self.fetch("/_spec")
-        spec_json = safe_load(resp.body)
+        curdir = os.path.dirname(__file__)
+        spec_path = os.path.join(curdir, "../../src/codebase/schema.yml")
+        spec_json = safe_load(open(spec_path))
         validator = get_validator(spec_json)
         validator.validate_spec(spec_json)
