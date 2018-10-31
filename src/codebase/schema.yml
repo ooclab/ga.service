@@ -1,9 +1,9 @@
 swagger: '2.0'
 info:
   version: '1.0'
-  title: 'foo'
+  title: 'ga.service'
   description: |
-    `Foo Service` -- 提供...服务
+    `ga.service` -- 管理服务的服务
 
     ## 约定
 
@@ -20,21 +20,10 @@ schemes:
 - http
 
 tags:
-- name: role
-  description: 角色
+- name: service
+  description: 服务
 
 paths:
-
-  "/_spec":
-    get:
-      tags:
-      - default
-      summary: 获取 YAML 格式的 SwaggerUI 文档（即本文档）
-      produces:
-      - application/yaml
-      responses:
-        "200":
-          description: 返回 YAML 文档
 
   "/_health":
     get:
@@ -45,26 +34,15 @@ paths:
         "200":
           description: 返回 "ok" 表示服务运行健康
 
-  "/role":
+  "/service":
 
     parameters:
     - $ref: '#/parameters/Authorization'
 
     get:
       tags:
-      - role
-      summary: 获取所有角色列表
-      parameters:
-      - $ref: '#/parameters/PageSize'
-      - $ref: '#/parameters/CurrentPage'
-      - $ref: '#/parameters/ASC'
-      - name: sort_by
-        in: query
-        type: string
-        description: 排序依据的属性
-        enum:
-        - created
-        - name
+      - service
+      summary: 获取所有服务列表
       responses:
         "200":
           description: OK
@@ -77,9 +55,7 @@ paths:
               data:
                 type: array
                 items:
-                  $ref: '#/definitions/RoleSimple'
-              filter:
-                $ref: '#/definitions/PageFilter'
+                  $ref: '#/definitions/ServiceSimple'
         default:
           description: 返回错误信息
           schema:
@@ -87,31 +63,30 @@ paths:
 
     post:
       tags:
-      - role
-      summary: 创建新角色
+      - service
+      summary: 创建新服务
+      consumes:
+      - multipart/form-data
       parameters:
-      - name: body
-        in: body
-        schema:
-          type: object
-          required:
-          - name
-          properties:
-            name:
-              type: string
-              description: 名称（必须全局唯一）
-              minLength: 2
-              maxLength: 128
-            summary:
-              type: string
-              description: 描述
-              maxLength: 256
-            description:
-              type: string
-              description: 详细描述
+      - name: openapi
+        in: formData
+        required: true
+        type: file
+        description: OpenAPI 文件
+      - name: name
+        in: formData
+        required: true
+        type: string
+        description: 服务名称
       responses:
         "200":
           description: OK
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                default: "success"
         default:
           description: |
             返回错误信息
@@ -120,16 +95,16 @@ paths:
           schema:
             $ref: '#/definitions/DefaultErrorResponse'
 
-  "/role/{id}":
+  "/service/{id}":
 
     parameters:
     - $ref: '#/parameters/Authorization'
-    - $ref: '#/parameters/PathRoleID'
+    - $ref: '#/parameters/PathServiceID'
 
     get:
       tags:
-      - role
-      summary: 获取指定角色详情
+      - service
+      summary: 获取指定服务详情
       responses:
         "200":
           description: OK
@@ -140,7 +115,7 @@ paths:
                 type: string
                 default: "success"
               data:
-                $ref: '#/definitions/Role'
+                $ref: '#/definitions/Service'
         default:
           description: |
             返回错误信息
@@ -151,8 +126,8 @@ paths:
 
     post:
       tags:
-      - role
-      summary: 更新指定角色信息
+      - service
+      summary: 更新指定服务属性
       parameters:
       - name: body
         in: body
@@ -180,8 +155,46 @@ paths:
 
     delete:
       tags:
-      - role
-      summary: 删除指定角色
+      - service
+      summary: 删除指定服务
+      description: |
+        删除服务注意：
+        1. 如何和服务启动/停止结合？通知 ga ?
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                default: "success"
+        default:
+          description: |
+            返回错误信息
+            error 值及含义：
+            - `not-found` : 名称不存在
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+
+  "/service/{id}/openapi":
+
+    parameters:
+    - $ref: '#/parameters/Authorization'
+    - $ref: '#/parameters/PathServiceID'
+
+    post:
+      tags:
+      - service
+      summary: 更新服务的 OpenAPI 文档
+      consumes:
+      - multipart/form-data
+      parameters:
+      - name: openapi
+        in: formData
+        required: true
+        type: file
+        description: OpenAPI 文件
       responses:
         "200":
           description: OK
@@ -221,37 +234,48 @@ definitions:
             type: string
             description: 详细错误信息
 
-  RoleSimple:
+  ServiceSimple:
     type: object
-    required:
-    - id
-    - name
-    properties:
-      id:
-        type: string
-        format: uuid
-        description: 角色ID
-      name:
-        type: string
-        description: 角色名称（全局唯一）
-      summary:
-        type: string
-        description: 角色描述
-
-  Role:
-    type: object
-    description: 角色
+    description: 服务
     required:
     - id
     - name
     - summary
+    - status
+    - updated
+    properties:
+      id:
+        type: string
+        format: uuid
+        description: ID
+      name:
+        type: string
+        description: 名称
+      summary:
+        type: string
+        description: 描述
+      status:
+        type: string
+        description: 当前状态
+      updated:
+        type: string
+        description: 更新时间
+
+  Service:
+    type: object
+    description: 服务详情
+    required:
+    - id
+    - name
+    - summary
+    - description
     - created
     - updated
     properties:
       id:
         type: string
         format: uuid
-        description: 角色ID
+        description: ID
       name:
         type: string
         description: 名字
@@ -270,41 +294,6 @@ definitions:
         format: date-time
         description: 更新时间
 
-  PageFilter:
-    type: object
-    description: 数据过滤选项
-    required:
-    - page_size
-    - page
-    - total
-    - sort_by
-    - asc
-    properties:
-      page_size:
-        type: integer
-        format: int
-        minimum: 10
-        maximum: 100
-        default: 10
-        description: 分页大小
-      page:
-        type: integer
-        format: int
-        minimum: 1
-        default: 1
-        description: 当前返回页
-      total:
-        type: integer
-        format: int
-        description: 总数
-      sort_by:
-        type: string
-        description: 排序属性
-      asc:
-        type: boolean
-        default: false
-        description: 是否为正序排列？
-
 
 parameters:
 
@@ -315,41 +304,9 @@ parameters:
     description: 提供 JWT Token, 格式 `"Bearer {TOKEN}"`
     required: true
 
-  PathRoleID:
+  PathServiceID:
     name: id
     in: path
     required: true
     type: string
-    format: uuid
-    description: 角色ID
-
-  ASC:
-    name: asc
-    in: query
-    type: string
-    default: "false"
-    enum:
-    - "true"
-    - "false"
-    - "1"
-    - "0"
-    description: 表示是否使用升序排列，默认为降序
-
-  CurrentPage:
-    name: current_page
-    in: query
-    type: integer
-    format: int
-    default: 1
-    minimum: 1
-    description: 需要查看的页数
-
-  PageSize:
-    name: page_size
-    in: query
-    type: integer
-    format: int
-    default: 10
-    minimum: 10
-    maximum: 100
-    description: 页数大小
+    description: 服务ID
