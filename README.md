@@ -1,31 +1,21 @@
-# tornado.boot
+# ga.service
 
-[![Build Status](https://travis-ci.com/ooclab/tornado.boot.svg?branch=master)](https://travis-ci.com/ooclab/tornado.boot)
-[![codecov](https://codecov.io/gh/ooclab/tornado.boot/branch/master/graph/badge.svg)](https://codecov.io/gh/ooclab/tornado.boot)
+[![Build Status](https://travis-ci.com/ooclab/ga.service.svg?branch=master)](https://travis-ci.com/ooclab/ga.service)
+[![codecov](https://codecov.io/gh/ooclab/ga.service/branch/master/graph/badge.svg)](https://codecov.io/gh/ooclab/ga.service)
 
-Start a service-oriented project rapidly
-
+The service mangement service for all services in ga architecture
 
 ## 简介
 
-`tornado.boot` 项目创建一个快速启动（微）服务开发的模版。
+`ga.service` 是管理服务的服务，当前设计需要支持：
 
-使用如下技术堆栈 [Dependency graph](https://github.com/ooclab/authz/network/dependencies) ：
+1. 配置所有的 ga / service
+2. 导入 service openapi spec 文件：
+   - 同步权限到 etcd
+   - 同步角色到 etcd
 
-- [pyeva](https://github.com/ooclab/eva)
-- [tornado](https://github.com/tornadoweb/tornado)
-- [sqlalchemy](https://github.com/zzzeek/sqlalchemy)
+![](./docs/attachments/ga.service-arch.png)
 
-
-## 使用
-
-### 创建项目副本
-
-```
-git clone https://github.com/ooclab/tornado.boot.git YOUR_PROJECT_NAME
-cd YOUR_PROJECT_NAME
-git remote set-url origin YOUR_GIT_REPO_ACCESS
-```
 
 ### 开发
 
