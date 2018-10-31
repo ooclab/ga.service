@@ -27,23 +27,30 @@ class Service(ORMBase):
     summary = Column(String(1024))
     description = Column(Text)
 
+    # 服务版本
+    version = Column(String(16))
+
     # 服务状态
     status = Column(String(64))
 
     updated = Column(DateTime(), default=datetime.datetime.utcnow)
     created = Column(DateTime(), default=datetime.datetime.utcnow)
 
+    @property
     def isimple(self):
         return {
             "id": str(self.uuid),
             "name": self.name,
+            "version": self.version,
             "summary": self.summary,
         }
 
+    @property
     def ifull(self):
         return {
             "id": str(self.uuid),
             "name": self.name,
+            "version": self.version,
             "summary": self.summary,
             "description": self.description,
             "updated": utc_rfc3339_string(self.updated),

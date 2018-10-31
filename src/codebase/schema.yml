@@ -243,6 +243,7 @@ definitions:
     required:
     - id
     - name
+    - version
     - summary
     - status
     - updated
@@ -254,6 +255,9 @@ definitions:
       name:
         type: string
         description: 名称
+      version:
+        type: string
+        description: 版本
       summary:
         type: string
         description: 描述
@@ -270,6 +274,7 @@ definitions:
     required:
     - id
     - name
+    - version
     - summary
     - description
     - status
@@ -283,6 +288,9 @@ definitions:
       name:
         type: string
         description: 名字
+      version:
+        type: string
+        description: 版本
       summary:
         type: string
         description: 描述

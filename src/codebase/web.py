@@ -1,47 +1,16 @@
 # pylint: disable=W0223,W0221,C0103
 
-import functools
 import json
 import logging
 import pprint
-
-from eva.conf import settings
 
 import tornado.web
 from tornado.web import HTTPError
 from tornado.escape import json_decode
 from tornado.log import app_log, gen_log
 
-from codebase.models import User
 
-
-class BaseHandler(tornado.web.RequestHandler):
-    def set_default_headers(self):
-        self.set_header("Access-Control-Allow-Origin", "*")
-        self.set_header("Access-Control-Allow-Headers", "x-requested-with")
-        self.set_header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
-
-    def options(self):
-        # no body
-        self.set_status(204)
-        self.finish()
-
-
-if settings.DEBUG:
-    MainBaseHandler = BaseHandler
-else:
-    MainBaseHandler = tornado.web.RequestHandler
-
-
-class APIRequestHandler(MainBaseHandler):
-    def get_current_user(self):
-        uid = self.request.headers.get("X-User-Id")
-        if not uid:
-            raise HTTPError(403, reason="no-x-user-id")
-        user = self.db.query(User).filter_by(uuid=uid).first()
-        if not user:
-            raise HTTPError(403, reason="fake-user-id")
-        return user
+class APIRequestHandler(tornado.web.RequestHandler):
 
     def fail(self, error="fail", errors=None, status=400, **kwargs):
         self.set_status(status)
@@ -136,13 +105,3 @@ class APIRequestHandler(MainBaseHandler):
         else:
             body = self.request.body
         logging.debug("--- request body:\n%s", body)
-
-
-def authenticated(method):
-    @functools.wraps(method)
-    def wrapper(self, *args, **kwargs):
-        if not self.current_user:
-            raise HTTPError(403, reason="need authenticated")
-        return method(self, *args, **kwargs)
-
-    return wrapper
