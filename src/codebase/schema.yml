@@ -86,6 +86,10 @@ paths:
               status:
                 type: string
                 default: "success"
+              id:
+                type: string
+                format: uuid
+                description: 成功创建的服务 ID
         default:
           description: |
             返回错误信息
