@@ -10,7 +10,6 @@ from eva.conf import settings
 from codebase.utils.sqlalchemy import dbc
 from codebase.utils.swaggerui import api
 from codebase.app import make_app
-from codebase.models import User
 from codebase.utils.common import scrub
 
 
@@ -85,11 +84,7 @@ class BaseTestCase(tornado.testing.AsyncHTTPTestCase):
         super().setUp()
         dbc.create_all()
 
-        self.current_user = User(uuid=str(uuid.uuid4()))
-        self.db.add(self.current_user)
-        self.db.commit()
-
-        self.http_request_headers = {"X-User-Id": str(self.current_user.uuid)}
+        self.http_request_headers = {}
 
     def tearDown(self):
         # 每个 testcase 执行后都会执行

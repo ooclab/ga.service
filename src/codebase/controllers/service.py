@@ -22,7 +22,6 @@ class ServiceHandler(APIRequestHandler):
         """获取所有服务列表
         """
         services = self.db.query(Service).all()
-        print([srv.isimple for srv in services])
         self.success(data=[srv.isimple for srv in services])
 
     def post(self):

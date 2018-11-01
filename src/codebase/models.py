@@ -41,8 +41,10 @@ class Service(ORMBase):
         return {
             "id": str(self.uuid),
             "name": self.name,
+            "status": self.status,
             "version": self.version,
             "summary": self.summary,
+            "updated": utc_rfc3339_string(self.updated),
         }
 
     @property
@@ -50,6 +52,7 @@ class Service(ORMBase):
         return {
             "id": str(self.uuid),
             "name": self.name,
+            "status": self.status,
             "version": self.version,
             "summary": self.summary,
             "description": self.description,
