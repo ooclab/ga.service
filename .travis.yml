@@ -4,6 +4,12 @@ python:
 # command to install dependencies
 install:
   - pip install -r requirements.dev.txt
+
+before_install:
+  - curl -L  https://github.com/coreos/etcd/releases/download/v3.3.3/etcd-v3.3.3-linux-amd64.tar.gz -o etcd-v3.3.3-linux-amd64.tar.gz
+  - tar xzvf etcd-v3.3.3-linux-amd64.tar.gz
+  - ./etcd-v3.3.3-linux-amd64/etcd &
+
 # command to run tests
 script:
   - pylint src tests
