@@ -1,4 +1,4 @@
-# pylint: disable=W0223,W0221,broad-except,R0914
+# pylint: disable=W0223,W0221,broad-except
 
 import datetime
 
@@ -16,6 +16,36 @@ from codebase.models import Service
 
 def get_openapi_spec_key(service_name):
     return f"/ga/service/{service_name}/openapi/spec"
+
+
+def save_openapi(name, data):
+
+    # 1. validate spec
+    spec_json = safe_load(data)
+    validator = get_validator(spec_json)
+    validator.validate_spec(spec_json)
+
+    # 2. get summary from spec
+    spec = Spec.from_dict(spec_json)
+    version = spec.spec_dict["info"]["version"]
+    summary = spec.spec_dict["info"]["title"]
+    description = spec.spec_dict["info"]["description"]
+    if not summary:
+        summary = description.split("\n")[0]
+
+    # 3. upload file to etcd
+    for endpoint in settings.ETCD_ENDPOINTS.split(";"):
+        host, port = endpoint.split(":")
+        client = Client(host, int(port))
+        key = get_openapi_spec_key(name)
+        client.put(key, data)
+        break  # FIXME: try when failed
+
+    return {
+        "version": version,
+        "summary": summary,
+        "description": description,
+    }
 
 
 class ServiceHandler(APIRequestHandler):
@@ -36,42 +66,19 @@ class ServiceHandler(APIRequestHandler):
             self.fail("name-exist")
             return
 
-        version = ""
-        summary = ""
-        description = ""
+        spec_info = {}
 
         # 处理 openapi
         file_metas = self.request.files["openapi"]
         for meta in file_metas:
             data = meta["body"]
-
-            # 1. validate spec
-            spec_json = safe_load(data)
-            validator = get_validator(spec_json)
-            validator.validate_spec(spec_json)
-
-            # 2. get summary from spec
-            spec = Spec.from_dict(spec_json)
-            version = spec.spec_dict["info"]["version"]
-            summary = spec.spec_dict["info"]["title"]
-            description = spec.spec_dict["info"]["description"]
-            if not summary:
-                print(description.split("\n"))
-                summary = description.split("\n")[0]
-
-            # 3. upload file to etcd
-            for endpoint in settings.ETCD_ENDPOINTS.split(";"):
-                host, port = endpoint.split(":")
-                client = Client(host, int(port))
-                key = get_openapi_spec_key(name)
-                client.put(key, data)
-                break  # FIXME: try when failed
+            spec_info = save_openapi(name, data)
 
         srv = Service(
             name=name,
-            version=version,
-            summary=summary,
-            description=description)
+            version=spec_info.get("version"),
+            summary=spec_info.get("summary"),
+            description=spec_info.get("description"))
         self.db.add(srv)
         self.db.commit()
         self.success(id=str(srv.uuid))
@@ -132,5 +139,27 @@ class SingleServiceHandler(_BaseSingleServiceHandler):
             key = get_openapi_spec_key(srv.name)
             client.delete_range(key)
             break  # FIXME: try when failed
+
+        self.success()
+
+
+class UpdateOpenAPIHandler(_BaseSingleServiceHandler):
+
+    def post(self, _id):
+        """更新OpenAPI
+        """
+        srv = self.get_service(_id)
+        spec_info = {}
+
+        # 处理 openapi
+        file_metas = self.request.files["openapi"]
+        for meta in file_metas:
+            data = meta["body"]
+            spec_info = save_openapi(srv.name, data)
+            srv.version = spec_info.get("version")
+            srv.summary = spec_info.get("summary")
+            srv.description = spec_info.get("description")
+            srv.updated = datetime.datetime.utcnow()
+            self.db.commit()
 
         self.success()

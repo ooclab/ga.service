@@ -201,6 +201,12 @@ paths:
       responses:
         "200":
           description: OK
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                default: "success"
         default:
           description: |
             返回错误信息

@@ -21,4 +21,9 @@ HANDLERS = [
     url(r"/service/"
         r"([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})",
         service.SingleServiceHandler),
+
+    url(r"/service/"
+        r"([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})"
+        r"/openapi",
+        service.UpdateOpenAPIHandler),
 ]

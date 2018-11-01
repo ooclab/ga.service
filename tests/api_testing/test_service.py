@@ -208,3 +208,38 @@ class ServiceDeleteTestCase(_Base):
         self.assertIs(srv, None)
 
         # TODO: check the etcd
+
+
+class ServiceUpdateOpenAPITestCase(_Base):
+    """POST /service/{id}/openapi - 更新OpenAPI文档
+    """
+
+    def test_not_found(self):
+        """ID不存在
+        """
+        _id = str(uuid.uuid4())
+        resp = self.api_post(f"/service/{_id}/openapi")
+        self.validate_not_found(resp)
+
+    def test_post_success(self):
+        """更新正确
+        """
+        srv = Service(name="name")
+        self.db.add(srv)
+        self.db.commit()
+        _id = str(srv.uuid)
+        old_updated = srv.updated
+        del srv
+
+        curdir = os.path.dirname(__file__)
+        spec_path = os.path.join(curdir, "../../src/codebase/schema.yml")
+
+        resp = post(self.fetch, f"/service/{_id}/openapi", files={
+            "openapi": spec_path}, params={})
+        body = get_body_json(resp)
+        self.assertEqual(resp.code, 200)
+        self.validate_default_success(body)
+
+        srv = self.db.query(Service).filter_by(uuid=_id).first()
+        self.assertIsNot(srv, None)
+        self.assertNotEqual(old_updated, srv.updated)
