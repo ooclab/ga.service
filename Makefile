@@ -1,3 +1,4 @@
+default: lint test
 
 lint:
 	pylint src tests

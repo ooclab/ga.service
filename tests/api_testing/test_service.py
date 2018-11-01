@@ -3,10 +3,11 @@
 import os
 import uuid
 
+from eva.utils.time_ import utc_rfc3339_string
+
 from codebase.models import Service
 from codebase.utils.swaggerui import api
 from codebase.utils.fetch_with_form import post
-from eva.utils.time_ import utc_rfc3339_string
 
 from .base import (
     BaseTestCase,

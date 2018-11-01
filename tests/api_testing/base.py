@@ -1,7 +1,6 @@
 # pylint: disable=R0903
 
 import json
-import uuid
 import logging
 
 import tornado.testing
