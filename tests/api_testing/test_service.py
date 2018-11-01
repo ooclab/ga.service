@@ -1,7 +1,10 @@
 # from eva.utils.time_ import utc_rfc3339_string
 
+import os
+
 from codebase.models import Service
 from codebase.utils.swaggerui import api
+from codebase.utils.fetch_with_form import post
 
 from .base import (
     BaseTestCase,
@@ -39,42 +42,41 @@ class ServiceListTestCase(_Base):
 
         self.assertEqual(len(body["data"]), total)
 
-#
-# class RoleCreateTestCase(RoleBaseTestCase):
-#     """POST /role - 创建角色
-#     """
-#
-#     def test_name_exist(self):
-#         """使用重复的名称
-#         """
-#
-#         role_name = "my-role"
-#         role = Role(name=role_name)
-#         self.db.add(role)
-#         self.db.commit()
-#
-#         resp = self.api_post("/role", body={"name": role_name})
-#         body = get_body_json(resp)
-#         self.assertEqual(resp.code, 400)
-#         validate_default_error(body)
-#         self.assertEqual(body["status"], "name-exist")
-#
-#     def test_create_success(self):
-#         """创建成功
-#         """
-#         role_name = "my-role"
-#         resp = self.api_post("/role", body={
-#             "name": role_name,
-#             "summary": "my summary",
-#             "description": "my description",
-#         })
-#         body = get_body_json(resp)
-#         self.assertEqual(resp.code, 200)
-#         self.validate_default_success(body)
-#
-#         role = self.db.query(Role).filter_by(name=role_name).first()
-#         self.assertIsNot(role, None)
-#         self.assertEqual(str(role.uuid), body["id"])
+
+class ServiceCreateTestCase(_Base):
+    """POST /service - 创建服务
+    """
+
+    def test_name_exist(self):
+        """使用重复的名称
+        """
+
+        name = "fortest"
+        srv = Service(name=name)
+        self.db.add(srv)
+        self.db.commit()
+
+        resp = post(self.fetch, "/service", files={}, params={"name": name})
+        body = get_body_json(resp)
+        self.assertEqual(resp.code, 400)
+        validate_default_error(body)
+        self.assertEqual(body["status"], "name-exist")
+
+    def test_create_success(self):
+        """创建成功
+        """
+        curdir = os.path.dirname(__file__)
+        spec_path = os.path.join(curdir, "../../src/codebase/schema.yml")
+        name = "fortest"
+        resp = post(self.fetch, "/service", files={
+            "openapi": spec_path}, params={"name": name})
+        body = get_body_json(resp)
+        self.assertEqual(resp.code, 200)
+        self.validate_default_success(body)
+
+        srv = self.db.query(Service).filter_by(name=name).first()
+        self.assertIsNot(srv, None)
+        self.assertEqual(str(srv.uuid), body["id"])
 #
 #
 # class SingleRoleViewTestCase(RoleBaseTestCase):
