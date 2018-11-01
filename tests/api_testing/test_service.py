@@ -1,10 +1,12 @@
 # from eva.utils.time_ import utc_rfc3339_string
 
 import os
+import uuid
 
 from codebase.models import Service
 from codebase.utils.swaggerui import api
 from codebase.utils.fetch_with_form import post
+from eva.utils.time_ import utc_rfc3339_string
 
 from .base import (
     BaseTestCase,
@@ -77,43 +79,43 @@ class ServiceCreateTestCase(_Base):
         srv = self.db.query(Service).filter_by(name=name).first()
         self.assertIsNot(srv, None)
         self.assertEqual(str(srv.uuid), body["id"])
-#
-#
-# class SingleRoleViewTestCase(RoleBaseTestCase):
-#     """GET /role/{id} - 查看指定的角色详情
-#     """
-#
-#     def test_not_found(self):
-#         """角色ID不存在
-#         """
-#
-#         role_id = str(uuid.uuid4())
-#         resp = self.api_get(f"/role/{role_id}")
-#         self.validate_not_found(resp)
-#
-#     def test_get_success(self):
-#         """正确
-#         """
-#         role_name = "my-role"
-#         role_summary = "my summary"
-#         role = Role(name=role_name, summary=role_summary)
-#         self.db.add(role)
-#         self.db.commit()
-#
-#         resp = self.api_get(f"/role/{role.uuid}")
-#         body = get_body_json(resp)
-#         self.assertEqual(resp.code, 200)
-#         self.validate_default_success(body)
-#
-#         spec = self.rs.get_role_id.op_spec["responses"]["200"]["schema"]
-#         api.validate_object(spec, body)
-#
-#         data = body["data"]
-#         self.assertEqual(data["summary"], role_summary)
-#         self.assertEqual(data["created"], utc_rfc3339_string(role.created))
-#         self.assertEqual(data["updated"], utc_rfc3339_string(role.updated))
-#
-#
+
+
+class SingleServiceViewTestCase(_Base):
+    """GET /service/{id} - 查看指定的服务详情
+    """
+
+    def test_not_found(self):
+        """服务ID不存在
+        """
+
+        srv_id = str(uuid.uuid4())
+        resp = self.api_get(f"/service/{srv_id}")
+        self.validate_not_found(resp)
+
+    def test_get_success(self):
+        """正确
+        """
+        name = "name"
+        summary = "summary"
+        srv = Service(name=name, summary=summary)
+        self.db.add(srv)
+        self.db.commit()
+
+        resp = self.api_get(f"/service/{srv.uuid}")
+        body = get_body_json(resp)
+        self.assertEqual(resp.code, 200)
+        self.validate_default_success(body)
+
+        spec = self.rs.get_service_id.op_spec["responses"]["200"]["schema"]
+        api.validate_object(spec, body)
+
+        data = body["data"]
+        self.assertEqual(data["summary"], summary)
+        self.assertEqual(data["created"], utc_rfc3339_string(srv.created))
+        self.assertEqual(data["updated"], utc_rfc3339_string(srv.updated))
+
+
 # class RoleUpdateTestCase(RoleBaseTestCase):
 #     """POST /role/{id} - 更新角色属性
 #     """
