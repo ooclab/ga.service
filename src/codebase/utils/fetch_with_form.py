@@ -1,3 +1,10 @@
+# Usage Example:
+#
+# your_fetch_clint = httpclient.AsyncHTTPClient()
+# post(your_fetch_clint, "/service", files={
+#     "openapi": spec_path}, params={"name": name})
+
+
 import uuid
 import mimetypes
 from functools import partial
