@@ -115,6 +115,8 @@ class SingleServiceViewTestCase(_Base):
         self.assertEqual(data["created"], utc_rfc3339_string(srv.created))
         self.assertEqual(data["updated"], utc_rfc3339_string(srv.updated))
 
+        # TODO: check the etcd
+
 
 class ServiceUpdateTestCase(_Base):
     """POST /service/{id} - 更新服务属性
@@ -176,41 +178,33 @@ class ServiceUpdateTestCase(_Base):
         self.assertNotEqual(old_updated, srv.updated)
 
 
-# class RoleDeleteTestCase(RoleBaseTestCase):
-#     """DELETE /role/{id} - 删除角色
-#     """
-#
-#     def test_not_found(self):
-#         """角色ID不存在
-#         """
-#         role_id = str(uuid.uuid4())
-#         resp = self.api_delete(f"/role/{role_id}")
-#         self.validate_not_found(resp)
-#
-#     def test_delete_success(self):
-#         """删除成功
-#         """
-#         user_id = self.current_user.id
-#
-#         role_name = "my-role"
-#         role = Role(name=role_name)
-#         role.users.append(self.current_user)
-#         perm = Permission(name="my-permission")
-#         self.db.add(perm)
-#         role.permissions.append(perm)
-#         self.db.add(role)
-#         self.db.commit()
-#
-#         role_id = str(role.uuid)
-#         resp = self.api_delete(f"/role/{role_id}")
-#         body = get_body_json(resp)
-#         self.assertEqual(resp.code, 200)
-#         self.validate_default_success(body)
-#
-#         dbc.remove()
-#
-#         role = self.db.query(Role).filter_by(uuid=role_id).first()
-#         self.assertIs(role, None)
-#
-#         user = self.db.query(User).get(user_id)
-#         self.assertNotIn(role_name, [r.name for r in user.roles])
+class ServiceDeleteTestCase(_Base):
+    """DELETE /service/{id} - 删除服务
+    """
+
+    def test_not_found(self):
+        """ID不存在
+        """
+        _id = str(uuid.uuid4())
+        resp = self.api_delete(f"/service/{_id}")
+        self.validate_not_found(resp)
+
+    def test_delete_success(self):
+        """删除成功
+        """
+        srv = Service(name="name")
+        self.db.add(srv)
+        self.db.commit()
+
+        _id = str(srv.uuid)
+        del srv
+
+        resp = self.api_delete(f"/service/{_id}")
+        body = get_body_json(resp)
+        self.assertEqual(resp.code, 200)
+        self.validate_default_success(body)
+
+        srv = self.db.query(Service).filter_by(uuid=_id).first()
+        self.assertIs(srv, None)
+
+        # TODO: check the etcd
