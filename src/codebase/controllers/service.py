@@ -1,5 +1,7 @@
 # pylint: disable=W0223,W0221,broad-except,R0914
 
+import datetime
+
 from sqlalchemy import and_
 from tornado.web import HTTPError
 from yaml import safe_load
@@ -99,6 +101,7 @@ class SingleServiceHandler(_BaseSingleServiceHandler):
         """
         srv = self.get_service(_id)
         body = self.get_body_json()
+        arg_len = len(body)
         if "name" in body:
             name = body.pop("name")
             if self.db.query(Service).filter(and_(
@@ -110,7 +113,9 @@ class SingleServiceHandler(_BaseSingleServiceHandler):
             srv.summary = body.pop("summary")
         if "description" in body:
             srv.description = body.pop("description")
-        self.db.commit()
+        if arg_len != len(body):
+            srv.updated = datetime.datetime.utcnow()
+            self.db.commit()
         self.success()
 
     def delete(self, _id):

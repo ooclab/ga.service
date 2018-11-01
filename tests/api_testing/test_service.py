@@ -86,7 +86,7 @@ class SingleServiceViewTestCase(_Base):
     """
 
     def test_not_found(self):
-        """服务ID不存在
+        """ID不存在
         """
 
         srv_id = str(uuid.uuid4())
@@ -116,45 +116,66 @@ class SingleServiceViewTestCase(_Base):
         self.assertEqual(data["updated"], utc_rfc3339_string(srv.updated))
 
 
-# class RoleUpdateTestCase(RoleBaseTestCase):
-#     """POST /role/{id} - 更新角色属性
-#     """
-#
-#     def test_not_found(self):
-#         """角色ID不存在
-#         """
-#         role_id = str(uuid.uuid4())
-#         resp = self.api_post(f"/role/{role_id}")
-#         self.validate_not_found(resp)
-#
-#     def test_update_success(self):
-#         """更新成功
-#         """
-#
-#         name = "my-role"
-#         summary = "my summary"
-#         description = "my description"
-#
-#         role = Role(name=name, summary=summary, description=description)
-#         self.db.add(role)
-#         self.db.commit()
-#         old_updated = role.updated
-#         role_id = str(role.uuid)
-#         del role
-#
-#         resp = self.api_post(f"/role/{role_id}", body={
-#             "summary": summary + ":new",
-#             "description": description + ":new"})
-#         body = get_body_json(resp)
-#         self.assertEqual(resp.code, 200)
-#         self.validate_default_success(body)
-#
-#         role = self.db.query(Role).filter_by(uuid=role_id).one()
-#         self.assertEqual(role.summary, summary + ":new")
-#         self.assertEqual(role.description, description + ":new")
-#         self.assertNotEqual(old_updated, role.updated)
-#
-#
+class ServiceUpdateTestCase(_Base):
+    """POST /service/{id} - 更新服务属性
+    """
+
+    def test_not_found(self):
+        """ID不存在
+        """
+        srv_id = str(uuid.uuid4())
+        resp = self.api_post(f"/service/{srv_id}")
+        self.validate_not_found(resp)
+
+    def test_name_exist(self):
+        """服务名已存在
+        """
+
+        exist_name = "exist_name"
+        srv = Service(name=exist_name)
+        self.db.add(srv)
+        self.db.commit()
+
+        srv = Service(name="name")
+        self.db.add(srv)
+        self.db.commit()
+
+        resp = self.api_post(f"/service/{srv.uuid}", body={"name": exist_name})
+        body = get_body_json(resp)
+        self.assertEqual(resp.code, 400)
+        validate_default_error(body)
+
+        self.assertEqual(body["status"], "name-exist")
+
+    def test_update_success(self):
+        """更新成功
+        """
+
+        name = "name"
+        summary = "summary"
+        description = "description"
+
+        srv = Service(name=name, summary=summary, description=description)
+        self.db.add(srv)
+        self.db.commit()
+        old_updated = srv.updated
+        srv_id = str(srv.uuid)
+        del srv
+
+        resp = self.api_post(f"/service/{srv_id}", body={
+            "name": name + ":new",
+            "summary": summary + ":new",
+            "description": description + ":new"})
+        body = get_body_json(resp)
+        self.assertEqual(resp.code, 200)
+        self.validate_default_success(body)
+
+        srv = self.db.query(Service).filter_by(uuid=srv_id).one()
+        self.assertEqual(srv.summary, summary + ":new")
+        self.assertEqual(srv.description, description + ":new")
+        self.assertNotEqual(old_updated, srv.updated)
+
+
 # class RoleDeleteTestCase(RoleBaseTestCase):
 #     """DELETE /role/{id} - 删除角色
 #     """
