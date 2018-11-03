@@ -231,6 +231,9 @@ definitions:
         description: 有多个错误值时（通常发生在验证表单失败时）
         items:
           type: object
+          required:
+          - name
+          - code
           properties:
             name:
               type: string
@@ -238,8 +241,12 @@ definitions:
             code:
               type: string
               description: 错误代码，请使用“固定”字符串描述准确的错误
+            message:
+              type: string
+              description: 详细的错误信息
       data:
         type: object
+        description: 接口自定义。如 tornado python 实现的接口，我们使用异常信息。
         properties:
           status_code:
             type: integer
