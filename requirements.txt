@@ -4,3 +4,5 @@ sqlalchemy==1.2.12
 sqlalchemy-utils==0.33.5
 pg8000==1.12.3
 etcd3-py==0.1.5
+PyYAML==3.13
+swagger_spec_validator==2.4.1
