@@ -1,9 +1,12 @@
-# pylint: disable=W0223,W0221,broad-except
+# pylint: disable=W0223,W0221,broad-except,C0103,R0201
 
 import datetime
+import json
+import logging
 
 from sqlalchemy import and_
 from tornado.web import HTTPError
+from tornado.httpclient import AsyncHTTPClient
 from yaml import safe_load
 from swagger_spec_validator.util import get_validator
 from bravado_core.spec import Spec
@@ -48,6 +51,38 @@ def save_openapi(name, data):
     }
 
 
+def get_perm_roles(service_name, data):
+    spec_json = safe_load(data)
+    spec = Spec.from_dict(spec_json)
+
+    perm_roles = []
+
+    for key in spec.resources:
+        rs = spec.resources[key]
+        for attr in dir(rs):
+            if attr.startswith("__"):
+                continue
+
+            op = getattr(rs, attr)
+
+            # get roles
+            roles = op.op_spec.get("x-roles", [])
+            if "Authorization" in op.params:
+                if "authenticated" not in roles:
+                    roles.append("authenticated")
+            else:
+                if "anonymous" not in roles:
+                    roles.append("anonymous")
+
+            # get permission name
+            perm = ":".join([service_name, op.http_method, op.path_name])
+
+            # save
+            perm_roles.append((perm, roles))
+
+    return perm_roles
+
+
 class ServiceHandler(APIRequestHandler):
 
     def get(self):
@@ -56,17 +91,18 @@ class ServiceHandler(APIRequestHandler):
         services = self.db.query(Service).all()
         self.success(data=[srv.isimple for srv in services])
 
-    def post(self):
+    async def post(self):
         """创建服务
         """
 
         name = self.get_argument("name")
         srv = self.db.query(Service).filter_by(name=name).first()
-        if srv:
-            self.fail("name-exist")
-            return
+        if not srv:
+            srv = Service(name=name)
+            self.db.add(srv)
 
         spec_info = {}
+        errors = []
 
         # 处理 openapi
         file_metas = self.request.files["openapi"]
@@ -74,14 +110,34 @@ class ServiceHandler(APIRequestHandler):
             data = meta["body"]
             spec_info = save_openapi(name, data)
 
-        srv = Service(
-            name=name,
-            version=spec_info.get("version"),
-            summary=spec_info.get("summary"),
-            description=spec_info.get("description"))
-        self.db.add(srv)
+            # update to service
+            http_client = AsyncHTTPClient()
+            for perm, roles in get_perm_roles(name, data):
+                for role in roles:
+                    url = self.get_full_url(f"/authz/role/permission/append")
+                    body = json.dumps({"role": role, "permissions": [perm]})
+                    resp = await http_client.fetch(
+                        url, method="POST", body=body, raise_error=False)
+                    respBody = json.loads(resp.body)
+                    status = respBody["status"]
+                    if status != "success":
+                        logging.error(
+                            "update role permissions failed. resp.body = %s",
+                            resp.body)
+                        errors.append({"name": perm, "error": status})
+
+        if errors:
+            self.fail(errors=errors)
+            return
+
+        srv.version = spec_info.get("version")
+        srv.summary = spec_info.get("summary")
+        srv.description = spec_info.get("description")
         self.db.commit()
         self.success(id=str(srv.uuid))
+
+    def get_full_url(self, url):
+        return settings.INTERNAL_APIGATEWAY + url
 
 
 class _BaseSingleServiceHandler(APIRequestHandler):

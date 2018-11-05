@@ -7,3 +7,6 @@ SECRET_KEY = "EZFWYIkk8sLxVix8tMi93VmkHCNdJ4bLJtbPcuFUN0tepsZEGObnyfVvqyFJngD"
 DB_URI = "sqlite://"
 
 ETCD_ENDPOINTS = "127.0.0.1:2379"
+
+# the apigate to access authz service
+INTERNAL_APIGATEWAY = "http://127.0.0.1:10080"
