@@ -5,4 +5,5 @@ sqlalchemy-utils==0.33.5
 pg8000==1.12.3
 etcd3-py==0.1.5
 PyYAML==3.13
+bravado_core==5.0.7
 swagger_spec_validator==2.4.1
