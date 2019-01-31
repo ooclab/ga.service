@@ -47,7 +47,7 @@ def main():
     dbc.wait_for_it()
 
     # sync database
-    if settings.SYNC_DATABASE:
+    if settings.SYNC_DATABASE == "true":
         import_module(settings.MODELS_MODULE)
         dbc.create_all()
 

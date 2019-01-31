@@ -1,5 +1,6 @@
-DEBUG = True
-SYNC_DATABASE = True
+DEBUG = "false"
+CORS = "false"
+SYNC_DATABASE = "false"
 
 SECRET_KEY = "EZFWYIkk8sLxVix8tMi93VmkHCNdJ4bLJtbPcuFUN0tepsZEGObnyfVvqyFJngD"
 

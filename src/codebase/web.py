@@ -4,13 +4,33 @@ import json
 import logging
 import pprint
 
+from eva.conf import settings
+
 import tornado.web
 from tornado.web import HTTPError
 from tornado.escape import json_decode
 from tornado.log import app_log, gen_log
 
 
-class APIRequestHandler(tornado.web.RequestHandler):
+class BaseHandler(tornado.web.RequestHandler):
+    def set_default_headers(self):
+        self.set_header("Access-Control-Allow-Origin", "*")
+        self.set_header("Access-Control-Allow-Headers", "*")
+        self.set_header("Access-Control-Allow-Methods", "*")
+
+    def options(self):
+        # no body
+        self.set_status(204)
+        self.finish()
+
+
+if settings.CORS == "true":
+    MainBaseHandler = BaseHandler
+else:
+    MainBaseHandler = tornado.web.RequestHandler
+
+
+class APIRequestHandler(MainBaseHandler):
 
     def fail(self, error="fail", errors=None, status=400, **kwargs):
         self.set_status(status)
