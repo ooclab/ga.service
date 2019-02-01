@@ -25,6 +25,17 @@ tags:
 
 paths:
 
+  "/":
+    get:
+      tags:
+      - default
+      summary: 获取 YAML 格式的 SwaggerUI 文档（即本文档）
+      produces:
+      - application/yaml
+      responses:
+        "200":
+          description: 返回 YAML 文档
+
   "/_health":
     get:
       tags:
