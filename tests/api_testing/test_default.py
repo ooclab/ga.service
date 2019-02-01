@@ -22,14 +22,14 @@ class HealthTestCase(BaseTestCase):
 
 
 class SpecTestCase(BaseTestCase):
-    """GET /_spec - SwaggerUI 文档
+    """GET / - SwaggerUI 文档
     """
 
     def test_spec(self):
         """返回正确
         """
 
-        resp = self.fetch("/_spec")
+        resp = self.fetch("/")
         self.assertEqual(resp.code, 200)
 
     def test_validate_swaggerui(self):
