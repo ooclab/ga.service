@@ -1,12 +1,13 @@
+dist: xenial   # required for Python >= 3.7
 language: python
 python:
-  - "3.7-dev"  # 3.7 development branch
+  - "3.7"
 # command to install dependencies
 install:
-  - pip install -r requirements.dev.txt
+  - pip install -r requirements.txt -r requirements.dev.txt
 
 before_install:
-  - curl -L  https://github.com/coreos/etcd/releases/download/v3.3.3/etcd-v3.3.3-linux-amd64.tar.gz -o etcd-v3.3.3-linux-amd64.tar.gz
+  - curl -L https://github.com/coreos/etcd/releases/download/v3.3.3/etcd-v3.3.3-linux-amd64.tar.gz -o etcd-v3.3.3-linux-amd64.tar.gz
   - tar xzvf etcd-v3.3.3-linux-amd64.tar.gz
   - ./etcd-v3.3.3-linux-amd64/etcd &
 
