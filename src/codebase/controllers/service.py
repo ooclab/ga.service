@@ -95,7 +95,12 @@ class ServiceHandler(APIRequestHandler):
         """创建服务
         """
 
-        name = self.get_argument("name")
+        name = self.get_argument("name", None)
+
+        if not name:
+            self.fail("name-needed")
+            return
+
         srv = self.db.query(Service).filter_by(name=name).first()
         if not srv:
             srv = Service(name=name)
